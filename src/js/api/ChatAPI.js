@@ -92,7 +92,7 @@ export default class ChatAPI extends Entity {
   }
 
   removeUserFromList(userId) {
-    // Здесь ты должен обновить список пользователей на клиенте
+    // Обвновление списка пользователей на клиенте
     console.log('Removing user with ID:', userId);
   
     // Отправляем событие обновления списка пользователей
