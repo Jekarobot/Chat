@@ -75,13 +75,17 @@ export default class ChatAPI extends Entity {
     } else if (message.type === 'send' && message.content?.type === 'requestUserList') {
       this.addUserToList(message.user);
     } else if (message.type === 'send' && message.content?.type === 'removeUser') {
-      // Если сервер присылает сообщение об удалении пользователя
+      // Удаление пользователя, если сервер присылает сообщение removeUser
       document.dispatchEvent(new CustomEvent('removeUser', { detail: message.content }));
     } else if (message.type === 'send') {
       // Обработка нового сообщения в чат
       this.handleNewMessage(message);
     } else if (message.type === 'exit') {
+      this.exitChat();
+      // Удаление пользователя при выходе
       console.log('User exited:', message.user);
+      // Логика для удаления пользователя
+      document.dispatchEvent(new CustomEvent('removeUser', { detail: message.user }));
     } else {
       console.error('Received invalid WebSocket message:', message);
     }
@@ -92,7 +96,7 @@ export default class ChatAPI extends Entity {
   }
 
   removeUserFromList(userId) {
-    // Обвновление списка пользователей на клиенте
+    // Здесь ты должен обновить список пользователей на клиенте
     console.log('Removing user with ID:', userId);
   
     // Отправляем событие обновления списка пользователей
