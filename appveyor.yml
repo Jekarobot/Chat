@@ -1,15 +1,16 @@
 version: 1.0.{build}
 image: Visual Studio 2019
 
-# Настройка языка программирования
+# Настройка окружения
 environment:
   nodejs_version: "16"
 
-# Настройка сборки
+# Установка зависимостей
 install:
   - ps: Install-Product node $env:nodejs_version
   - npm install
 
+# Сборка проекта
 build_script:
   - npm run build
 
@@ -17,16 +18,13 @@ artifacts:
   - path: dist
     name: MyApp
 
-# Настройка деплоя
+# Деплой на GitHub
 deploy:
   provider: GitHub
   release: $(appveyor_build_version)
   artifact: MyApp.zip
   auth_token: $(auth_token)
 
-build_script:
-  - npm install
-  - npm run build
-
+# Деплой на GitHub Pages
 deploy_script:
   - npm run deploy
