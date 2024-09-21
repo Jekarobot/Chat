@@ -22,5 +22,4 @@ deploy:
   provider: GitHub
   release: $(appveyor_build_version)
   artifact: MyApp.zip
-  auth_token:
-    secure: $(auth_token)
+  auth_token: $(auth_token)
