@@ -23,3 +23,10 @@ deploy:
   release: $(appveyor_build_version)
   artifact: MyApp.zip
   auth_token: $(auth_token)
+
+build_script:
+  - npm install
+  - npm run build
+
+deploy_script:
+  - npm run deploy
