@@ -36,7 +36,7 @@ export default class Chat {
         event.target.value = ''; 
       }
     });
-  
+
     this.subscribeOnEvents();
   }
 
@@ -97,13 +97,13 @@ export default class Chat {
   }
 
   onExitChatHandler() {
+    let isExiting = false;
     if (this.user) {
-      
       if (this.api.ws && this.api.ws.readyState === WebSocket.OPEN) {
+        let isExiting = true;
         this.api.sendMessage({
-          type: 'exit',  // Тип сообщения, указывающий на выход
-          user: this.user  // Передаем данные пользователя, который выходит
-        });
+          user: this.user
+        }, 'exit');
       } 
     }
   }
@@ -152,4 +152,6 @@ removeUserFromList(userId) {
     userListElement.removeChild(userItem);
   }
 }
+
 }
+
