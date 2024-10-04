@@ -32,7 +32,6 @@ export default class Chat {
   
     messageInput.addEventListener('keypress', (event) => {
       if (event.key === 'Enter' && event.target.value.trim() !== '') {
-        console.log('Sending message:', event.target.value);
         this.sendMessage(event.target.value);
         event.target.value = ''; 
       }
@@ -42,48 +41,32 @@ export default class Chat {
   }
 
   subscribeOnEvents() {
-    if (!this.api.ws || this.api.ws.readyState !== WebSocket.OPEN) {
-      console.log('WebSocket is not open. Attempting to connect...');
-      this.api.connectWebSocket();
-    } else {
-      console.log('WebSocket is already connected.');
-    }
-  
     if (!this.isSubscribed) {
-      // Обработка обновленного списка пользователей
       document.addEventListener('userListUpdate', (event) => {
-        console.log('User list update event received:', event.detail);
         this.updateUserList(event.detail);
       });
-  
-      // Обработка добавления нового пользователя
+
       document.addEventListener('addUser', (event) => {
-        console.log('Add user event received:', event.detail);
         this.addUser(event.detail);
       });
-  
-      // Обработка новых сообщений
+
       document.addEventListener('newMessage', (event) => {
         const { content, user } = event.detail;
         this.renderMessage(content, user);
       });
-  
-      // Обработка удаления пользователя
+
       document.addEventListener('removeUser', (event) => {
         const { userId } = event.detail;
-        console.log('Remove user event received for userId:', userId);
-        this.requestUpdatedUserList(); // Запрашиваем обновленный список пользователей
+        this.removeUserFromList(userId);
       });
-  
+
       this.isSubscribed = true;
     }
   }
 
   addUser(user) {
-    console.log('Adding user:', user);
     const userListElement = document.querySelector('#userList');
     if (!userListElement) {
-      console.error('User list element not found.');
       return;
     }
   
@@ -93,51 +76,39 @@ export default class Chat {
   }
 
   async onEnterChatHandler(nickname) {
-    console.log('Entering chat with nickname:', nickname);
-    try {
-      const user = await this.api.registerUser(nickname);
-      if (user) {
-        this.user = user;
-        document.querySelector('.modal__form').classList.remove('active');
-    
-        // После логина запрашиваем обновленный список пользователей
-        if (this.api.ws && this.api.ws.readyState === WebSocket.OPEN) {
-          console.log('Requesting user list...');
-          this.api.sendMessage({ type: 'requestUserList' });
-        } else {
-          console.error('WebSocket is not connected or not open.');
-        }
-    
-        this.subscribeOnEvents();
-      } else {
-        document.getElementById('errorHint').textContent = 'Ошибка регистрации пользователя';
-      }
-    } catch (error) {
-      console.error('Error entering chat:', error);
+    const user = await this.api.registerUser(nickname);
+    if (user) {
+      this.user = user;
+      document.querySelector('.modal__form').classList.remove('active');
+  
+      // После логина запрашиваем обновленный список пользователей
+      if (this.api.ws && this.api.ws.readyState === WebSocket.OPEN) {
+        this.api.sendMessage({ type: 'requestUserList' });
+      } 
+    } else {
+      document.getElementById('errorHint').textContent = 'Ошибка регистрации пользователя';
     }
   }
 
   requestUpdatedUserList() {
     if (this.api.ws && this.api.ws.readyState === WebSocket.OPEN) {
-      this.api.sendMessage({ type: 'requestUserList' }); // Отправляем запрос на обновление списка
-    } else {
-      console.error('WebSocket is not connected or not open.');
-    }
+      this.api.sendMessage({ type: 'requestUserList' }); 
+    } 
   }
 
   onExitChatHandler() {
     if (this.user) {
-      console.log('Exiting chat for user:', this.user.name);
+      
       if (this.api.ws && this.api.ws.readyState === WebSocket.OPEN) {
-        this.api.sendMessage({ type: 'removeUser', userId: this.user.id });
-      } else {
-        console.error('WebSocket is not connected or not open.');
-      }
+        this.api.sendMessage({
+          type: 'exit',  // Тип сообщения, указывающий на выход
+          user: this.user  // Передаем данные пользователя, который выходит
+        });
+      } 
     }
   }
 
   sendMessage(message) {
-    console.log('Sending message:', message);
     this.api.sendMessage(message);
   }
 
@@ -154,14 +125,10 @@ export default class Chat {
   }
   
 updateUserList(users) {
-  console.log('Updating user list:', users);
   const userListElement = document.querySelector('#userList');
   if (!userListElement) {
-    console.error('User list element not found.');
     return;
   }
-
-  // Очистим предыдущий список
   userListElement.innerHTML = '';
 
   users.forEach(user => {
@@ -170,42 +137,19 @@ updateUserList(users) {
       userElement.textContent = user.name;
       userElement.dataset.userId = user.id; // Для идентификации пользователя
       userListElement.appendChild(userElement);
-    } else {
-      console.error('User object does not have a name property:', user);
-    }
+    } 
   });
 }
 
-  removeUserFromList(userId) {
-    console.log('Removing user with ID:', userId);
-    
-    const userListElement = document.querySelector('#userList');
-    if (!userListElement) {
-      console.error('User list element not found.');
-      return;
-    }
-  
-    // Находим и удаляем пользователя из списка
-    const userItems = Array.from(userListElement.children);
-    userItems.forEach((item) => {
-      if (item.dataset.userId === userId) {
-        userListElement.removeChild(item);
-      }
-    });
+removeUserFromList(userId) {
+  const userListElement = document.querySelector('#userList');
+  if (!userListElement) {
+    return;
   }
 
-  exitChat() {
-    console.log('Exiting chat.');
-  
-    if (this.api.ws && this.api.ws.readyState === WebSocket.OPEN) {
-      if (this.user) {
-        this.api.ws.send(JSON.stringify({ type: 'exit', user: this.user }));
-      }
-    } else {
-      console.error('WebSocket is not connected or not open.');
-    }
-  
-    this.updateUserList([]);
-    this.api.exitChat();
+  const userItem = Array.from(userListElement.children).find((item) => item.dataset.userId === userId);
+  if (userItem) {
+    userListElement.removeChild(userItem);
   }
+}
 }
