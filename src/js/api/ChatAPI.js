@@ -57,14 +57,7 @@ export default class ChatAPI extends Entity {
       // Обновление списка пользователей
       document.dispatchEvent(new CustomEvent('userListUpdate', { detail: message }));
     } else if (message.type === 'send') {
-      // if (message.content.type === 'exit') {
-      //   // Удаляем пользователя из списка
-      //   this.removeUserFromList(message.user.id);
-      // }
-      //  else {
-        // Обработка нового сообщения в чат
         this.handleNewMessage(message);
-      // }
     } 
   }
   
